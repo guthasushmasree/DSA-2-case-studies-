@@ -1,95 +1,102 @@
-import java.util.*;
+import java.util.Arrays;
 
-class Edge {
-    int src, dest, weight;
+public class BellmanFordBMTC {
 
-    Edge(int src, int dest, int weight) {
-        this.src = src;
-        this.dest = dest;
-        this.weight = weight;
-    }
-}
+    static class Edge {
+        int src, dest, weight;
 
-public class BellmanFord {
-
-    static final int INF = Integer.MAX_VALUE;
-
-    public static void bellmanFord(List<Edge> edges, int V, int source) {
-
-        int[] dist = new int[V];
-        Arrays.fill(dist, INF);
-        dist[source] = 0;
-
-        // Relax all edges V-1 times
-        for (int i = 1; i <= V - 1; i++) {
-            for (Edge e : edges) {
-                if (dist[e.src] != INF &&
-                    dist[e.src] + e.weight < dist[e.dest]) {
-
-                    dist[e.dest] = dist[e.src] + e.weight;
-                }
-            }
-        }
-
-        // Check for negative-weight cycle
-        boolean negativeCycle = false;
-
-        for (Edge e : edges) {
-            if (dist[e.src] != INF &&
-                dist[e.src] + e.weight < dist[e.dest]) {
-
-                negativeCycle = true;
-                break;
-            }
-        }
-
-        // Display Results
-        if (negativeCycle) {
-
-            System.out.println("\n==================================");
-            System.out.println(" NEGATIVE WEIGHT CYCLE DETECTED ");
-            System.out.println("==================================");
-
-        } else {
-
-            String[] vertices = {"A", "B", "C", "D", "E"};
-
-            System.out.println("\n==========================================");
-            System.out.println(" BELLMAN-FORD SHORTEST PATH RESULTS");
-            System.out.println("==========================================");
-
-            System.out.printf("%-10s %-20s\n", "Vertex", "Distance");
-
-            System.out.println("------------------------------------------");
-
-            for (int i = 0; i < V; i++) {
-                System.out.printf("%-10s %-20d\n",
-                        vertices[i], dist[i]);
-            }
-
-            System.out.println("==========================================");
+        Edge(int src, int dest, int weight) {
+            this.src = src;
+            this.dest = dest;
+            this.weight = weight;
         }
     }
 
     public static void main(String[] args) {
 
-        int V = 5;
-        int source = 0;
+        String[] hubs = {"MJC", "KEM", "JAY", "KOR", "WHF", "HBR", "MRT"};
 
-        List<Edge> edges = new ArrayList<>();
+        Edge[] edges = {
+            new Edge(0, 1, 8),    // MJC -> KEM
+            new Edge(0, 2, 5),    // MJC -> JAY
+            new Edge(0, 3, 12),   // MJC -> KOR
+            new Edge(2, 3, 4),    // JAY -> KOR
+            new Edge(1, 5, 7),    // KEM -> HBR
+            new Edge(1, 4, 10),   // KEM -> WHF
+            new Edge(3, 4, 6),    // KOR -> WHF
+            new Edge(3, 6, 9),    // KOR -> MRT
+            new Edge(4, 5, 3),    // WHF -> HBR
+            new Edge(5, 6, 11),   // HBR -> MRT
+            new Edge(4, 6, -3)    // WHF -> MRT
+        };
 
-        // Graph Edges
-        edges.add(new Edge(0, 1, 6));
-        edges.add(new Edge(0, 2, 7));
-        edges.add(new Edge(1, 2, 8));
-        edges.add(new Edge(1, 3, 5));
-        edges.add(new Edge(1, 4, -4));
-        edges.add(new Edge(2, 3, -3));
-        edges.add(new Edge(2, 4, 9));
-        edges.add(new Edge(3, 1, -2));
-        edges.add(new Edge(4, 0, 2));
-        edges.add(new Edge(4, 3, 7));
+        int V = 7;
+        int source = 0; // MJC
 
-        bellmanFord(edges, V, source);
+        int[] dist = new int[V];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[source] = 0;
+
+        System.out.println("Iteration 0:");
+        printDistances(dist, hubs);
+
+        // Bellman-Ford
+        for (int i = 1; i <= V - 1; i++) {
+
+            boolean updated = false;
+
+            for (Edge e : edges) {
+
+                if (dist[e.src] != Integer.MAX_VALUE &&
+                    dist[e.src] + e.weight < dist[e.dest]) {
+
+                    dist[e.dest] = dist[e.src] + e.weight;
+                    updated = true;
+                }
+            }
+
+            System.out.println("\nIteration " + i + ":");
+            printDistances(dist, hubs);
+
+            if (!updated) {
+                System.out.println("\nAlgorithm converged early at Iteration " + i);
+                break;
+            }
+        }
+
+        // Negative cycle check
+        boolean negativeCycle = false;
+
+        for (Edge e : edges) {
+            if (dist[e.src] != Integer.MAX_VALUE &&
+                dist[e.src] + e.weight < dist[e.dest]) {
+                negativeCycle = true;
+                break;
+            }
+        }
+
+        if (negativeCycle) {
+            System.out.println("\nNegative Weight Cycle Detected!");
+        } else {
+            System.out.println("\nNo Negative Weight Cycle.");
+        }
+
+        System.out.println("\nFinal Shortest Distances from MJC:");
+        for (int i = 0; i < V; i++) {
+            System.out.println(hubs[i] + " = " + dist[i]);
+        }
+    }
+
+    static void printDistances(int[] dist, String[] hubs) {
+
+        for (int i = 0; i < dist.length; i++) {
+
+            if (dist[i] == Integer.MAX_VALUE)
+                System.out.print(hubs[i] + "=INF  ");
+            else
+                System.out.print(hubs[i] + "=" + dist[i] + "  ");
+        }
+
+        System.out.println();
     }
 }
